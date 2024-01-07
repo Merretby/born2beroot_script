@@ -1,0 +1,32 @@
+#!/bin/bash
+
+arch=$(uname -a)
+pCPU=$(lscpu | grep 'Socket' | awk '{print $2}')
+Vcpu=$(nproc)
+memUsage=$(free --mega | grep 'Mem' | awk '{printf "%s/%sMB (%.2f%%)", $3, $2, $3/$2*100}')
+diskUsage=$(df -h --total | grep 'total' | awk '{printf "%d/%dG (%d%%)", $3*1000, $2, $5}')
+cpuload=$(top -bn1 | grep 'load' | awk '{printf("%.1f%%", $(NF-2))}')
+lastBoot=$(who -b | awk '{print $3,$4}')
+total=$(lsblk | grep -c  "lvm")
+lvmUSE=$(if [ $total -eq 0 ]; then echo no; else echo yes; fi)
+connectionstcp=$(netstat | grep 'ESTABLISHED' | wc -l)
+userLOG=$(who | cut -d " " -f 1 | sort -u | wc -l)
+network=$(hostname -I)
+network1=$(ip a | grep link/ether | awk '{printf"(%s)", $2}')
+sudo=$(grep 'sudo' /var/log/sudo/sudo.log | wc -l)
+
+wall "
+	#Architecture: $arch
+	#CPU physical: $pCPU
+	#vCPU: $Vcpu
+	#Memory Usage: $memUsage
+	#Disk Usage: $diskUsage
+	#CPU load: $cpuload
+	#Last boot: $lastBoot
+	#LVM use: $lvmUSE
+	#Connections TCP: $connectionstcp ESTABLISHED
+	#User log: $userLOG
+	#Network: IP $network$network1
+	#Sudo: $sudo cmd
+"
+
